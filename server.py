@@ -1,6 +1,6 @@
 
 from bottle import Bottle, run, static_file, request, response
-# import ComNet_Proj as feeder   # assumes ComNet_Proj.py defines read_food_level() and dispense_food()
+import hardware_control as feeder   # assumes ComNet_Proj.py defines read_food_level() and dispense_food()
 
 app = Bottle()
 
