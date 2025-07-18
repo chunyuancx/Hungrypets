@@ -1,0 +1,43 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+ENV/
+env/
+.venv/
+
+# VS Code settings
+.vscode/
+
+# Log files
+*.log
+logs/
+feed_log.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python egg info
+*.egg-info/
+dist/
+build/
+
+# Flask/Bottle related
+instance/
+*.db
+*.sqlite3
+
+# HTML/JS/CSS cache
+*.cache
+*.bak
+*.swp
+
+# Requirements backup
+pip-log.txt
+
+# Environment variables (if using .env files)
+.env
