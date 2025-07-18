@@ -1,110 +1,180 @@
 // UI elements
-const planBtn      = document.getElementById('planBtn');
-const recordBtn    = document.getElementById('recordBtn');
-const dispenseBtn  = document.getElementById('dispenseBtn');
-const planSection  = document.getElementById('planSection');
-const recordSection= document.getElementById('recordSection');
-const planForm     = document.getElementById('planForm');
-const scheduleList = document.getElementById('scheduleList');
-const historyTable = document.getElementById('historyTable');
-const alertBanner  = document.getElementById('alertBanner');
-const levelBanner  = document.getElementById('levelBanner');
-const currentLevel = document.getElementById('currentLevel');
+const planBtn         = document.getElementById('planBtn');
+const recordBtn       = document.getElementById('recordBtn');
+const dispenseBtn     = document.getElementById('dispenseBtn');
+const planSection     = document.getElementById('planSection');
+const recordSection   = document.getElementById('recordSection');
+const planForm        = document.getElementById('planForm');
+const planSaveBtn     = document.getElementById('planSaveBtn');
+const scheduleList    = document.getElementById('scheduleList');
+const historyTable    = document.getElementById('historyTable');
+const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+const alertBanner     = document.getElementById('alertBanner');
+const levelBanner     = document.getElementById('levelBanner');
+const currentLevel    = document.getElementById('currentLevel');
 
-// Load or init state
+// Helpers
+function formatAMPM(timeStr) {
+  let [h, m] = timeStr.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return `${h}:${m.toString().padStart(2,'0')} ${ampm}`;
+}
+function compareTime(a, b) {
+  const [ah, am] = a.split(':').map(Number);
+  const [bh, bm] = b.split(':').map(Number);
+  return ah*60 + am - (bh*60 + bm);
+}
+
+// State
 let schedules = JSON.parse(localStorage.getItem('schedules') || '[]');
 let logs      = JSON.parse(localStorage.getItem('logs')      || '[]');
-let foodLevel = parseInt(localStorage.getItem('foodLevel')  || '100', 10);
+let editIndex = null;
 
-// Persist state
+// Persist
 function saveState() {
   localStorage.setItem('schedules', JSON.stringify(schedules));
   localStorage.setItem('logs',      JSON.stringify(logs));
-  localStorage.setItem('foodLevel', foodLevel);
 }
 
-// Render schedules list
+// Render schedule list
 function renderSchedules() {
-  scheduleList.innerHTML = schedules
-    .sort((a,b)=> a.time.localeCompare(b.time))
-    .map(s =>
-      `<li class="list-group-item d-flex justify-content-between align-items-center p-1">
-         ${s.time} — ${s.portion}g
-       </li>`
-    ).join('') || '<li class="list-group-item p-1">No schedules</li>';
+  schedules.sort(compareTime);
+  scheduleList.innerHTML = schedules.length
+    ? schedules.map((time,i)=>`
+      <li class="list-group-item d-flex justify-content-between align-items-center p-1">
+        ${formatAMPM(time)}
+        <span>
+          <button class="btn btn-link btn-sm edit-btn" data-index="${i}">Edit</button>
+          <button class="btn btn-link btn-sm text-danger delete-btn" data-index="${i}">Delete</button>
+        </span>
+      </li>`).join('')
+    : '<li class="list-group-item p-1">No schedules</li>';
+
+  document.querySelectorAll('.edit-btn').forEach(btn=>{
+    btn.onclick = () => {
+      editIndex = +btn.dataset.index;
+      document.getElementById('timeInput').value = schedules[editIndex];
+      planSaveBtn.textContent = 'Update';
+      planBtn.click();
+    };
+  });
+  document.querySelectorAll('.delete-btn').forEach(btn=>{
+    btn.onclick = () => {
+      schedules.splice(+btn.dataset.index,1);
+      saveState();
+      renderSchedules();
+    };
+  });
 }
 
-// Render feed history table
+// Render feed history
 function renderHistory() {
   historyTable.innerHTML = logs.length
-    ? logs.map(r =>
-      `<tr>
-         <td>${new Date(r.ts).toLocaleTimeString()}</td>
-         <td>${r.portion}g</td>
-         <td>${r.level}%</td>
-       </tr>`
-    ).join('')
-    : '<tr><td colspan="3">No records</td></tr>';
+    ? logs.map(r=>`
+      <tr>
+        <td>${new Date(r.ts).toLocaleTimeString()}</td>
+        <td>${r.level}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="2">No records</td></tr>';
 }
 
-// Update the low-food alert visibility
-function updateAlert() {
-  alertBanner.style.display = foodLevel <= 20 ? 'block' : 'none';
-}
-
-// Update the current-level banner
-function updateLevelBanner() {
-  currentLevel.textContent = foodLevel;
-}
-
-// Tab navigation helper
-function activate(btn) {
-  [planBtn, recordBtn].forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-}
-
-// Meal Plan tab
-planBtn.onclick = () => {
-  activate(planBtn);
-  planSection.style.display   = 'block';
-  recordSection.style.display = 'none';
-};
-
-// Feed Record tab
-recordBtn.onclick = () => {
-  activate(recordBtn);
-  planSection.style.display   = 'none';
-  recordSection.style.display = 'block';
+// Clear history
+clearHistoryBtn.onclick = ()=>{
+  logs = [];
+  saveState();
   renderHistory();
 };
 
-// Default to Meal Plan
-planBtn.click();
+// Fetch real level
+async function fetchLevel() {
+  try {
+    const res = await fetch('/api/status');
+    if (!res.ok) throw new Error(res.statusText);
+    const { food_level } = await res.json();
+    return food_level;
+  } catch {
+    return null;
+  }
+}
 
-// Handle new schedule submissions
-planForm.onsubmit = e => {
+// Update banners
+function updateLevelBanner(level) {
+  const isLow = level !== null && level <= 20;
+  currentLevel.textContent = level===null
+    ? '—'
+    : (isLow ? 'Low' : 'Filled');
+  levelBanner.classList.toggle('alert-danger', isLow);
+  levelBanner.classList.toggle('alert-info', !isLow);
+}
+function updateAlert(level) {
+  alertBanner.style.display = (level!==null && level<=20) ? 'block' : 'none';
+}
+
+// Poll level every 10s
+setInterval(async()=>{
+  const lvl = await fetchLevel();
+  updateLevelBanner(lvl);
+  updateAlert(lvl);
+},10000);
+(async()=>{
+  const lvl = await fetchLevel();
+  updateLevelBanner(lvl);
+  updateAlert(lvl);
+})();
+
+// Tab navigation
+function activate(btn) {
+  [planBtn,recordBtn].forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+planBtn.onclick = ()=>{
+  activate(planBtn);
+  planSection.style.display='block';
+  recordSection.style.display='none';
+};
+recordBtn.onclick = ()=>{
+  activate(recordBtn);
+  planSection.style.display='none';
+  recordSection.style.display='block';
+  renderHistory();
+};
+planBtn.click();
+renderSchedules();
+
+// Handle Add/Update schedule
+planForm.onsubmit = e=>{
   e.preventDefault();
-  const time    = document.getElementById('timeInput').value;
-  const portion = parseInt(document.getElementById('portionInput').value, 10);
-  schedules.push({ time, portion });
+  const time = document.getElementById('timeInput').value;
+  if (editIndex===null) schedules.push(time);
+  else schedules[editIndex]=time;
   saveState();
   renderSchedules();
   planForm.reset();
+  planSaveBtn.textContent='Save';
+  editIndex=null;
 };
 
-// Manual dispense (fixed 50g)
-dispenseBtn.onclick = () => {
-  const portion = 50;
-  foodLevel = Math.max(0, foodLevel - portion);
-  logs.unshift({ ts: Date.now(), portion, level: foodLevel });
-  if (logs.length > 50) logs.pop();
+// Manual dispense: always log time & level (or Failed)
+dispenseBtn.onclick = async ()=>{
+  const now = Date.now();
+  let level;
+  try {
+    const r = await fetch('/api/dispense',{method:'POST'});
+    if (!r.ok) throw new Error(r.statusText);
+    const lvl = await fetchLevel();
+    level = lvl===null ? 'Failed' : (lvl<=20 ? 'Low':'Filled');
+  } catch {
+    level = 'Failed';
+  }
+  logs.unshift({ts:now, level});
+  if (logs.length>50) logs.pop();
   saveState();
-  if (recordSection.style.display !== 'none') renderHistory();
-  updateAlert();
-  updateLevelBanner();
-};
 
-// Initial render/state hookup
-renderSchedules();
-updateAlert();
-updateLevelBanner();
+  updateLevelBanner(level==='Failed'?null:(level==='Low'?0:100));
+  updateAlert(level==='Low'?0:100);
+
+  // switch to record and show it
+  recordBtn.click();
+  renderHistory();
+};

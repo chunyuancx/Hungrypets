@@ -13,9 +13,9 @@
 </head>
 <body class="d-flex flex-column vh-100">
 
-  <!-- CURRENT LEVEL BANNER -->
+  <!-- CURRENT-LEVEL BANNER -->
   <div id="levelBanner" class="alert alert-info text-center m-0">
-    Current Food Level: <strong><span id="currentLevel">—</span>%</strong>
+    Food Level: <strong><span id="currentLevel">—</span></strong>
   </div>
 
   <!-- LOW-FOOD ALERT -->
@@ -33,32 +33,36 @@
     <section id="planSection" class="mb-4">
       <h2 class="h5 mb-2">Meal Plan</h2>
       <form id="planForm" class="row g-2">
-        <div class="col-5">
+        <div class="col-8">
           <label for="timeInput" class="form-label small">Time</label>
           <input type="time" id="timeInput"
                  class="form-control form-control-sm" required>
         </div>
-        <div class="col-5">
-          <label for="portionInput" class="form-label small">Portion (g)</label>
-          <input type="number" id="portionInput"
-                 class="form-control form-control-sm" min="1" required>
-        </div>
-        <div class="col-2 d-grid">
-          <button type="submit" class="btn btn-success btn-sm">Save</button>
+        <div class="col-4 d-grid">
+          <button type="submit"
+                  id="planSaveBtn"
+                  class="btn btn-success btn-sm w-100">
+            Save
+          </button>
         </div>
       </form>
-      <ul id="scheduleList" class="list-group list-group-flush mt-2 small"></ul>
+      <ul id="scheduleList"
+          class="list-group list-group-flush mt-2 small"></ul>
     </section>
 
     <!-- FEED RECORD SECTION -->
     <section id="recordSection">
-      <h2 class="h5 mb-2">Feed Record</h2>
+      <div class="d-flex justify-content-between mb-2">
+        <h2 class="h5">Feed Record</h2>
+        <button id="clearHistoryBtn" class="btn btn-danger btn-sm">
+          Clear History
+        </button>
+      </div>
       <div class="table-responsive">
         <table class="table table-sm table-striped small mb-0">
           <thead>
             <tr>
               <th>Time</th>
-              <th>Portion</th>
               <th>Level</th>
             </tr>
           </thead>
@@ -71,8 +75,8 @@
   <!-- NAV + MANUAL DISPENSE (fixed bottom) -->
   <nav class="navbar navbar-light bg-light border-top fixed-bottom">
     <div class="container-fluid d-flex justify-content-around">
-      <button id="planBtn"    class="btn btn-link p-1 small">Meal Plan</button>
-      <button id="recordBtn"  class="btn btn-link p-1 small">Feed Record</button>
+      <button id="planBtn"     class="btn btn-link p-1 small">Meal Plan</button>
+      <button id="recordBtn"   class="btn btn-link p-1 small">Feed Record</button>
       <button id="dispenseBtn" class="btn btn-primary btn-sm">Dispense Now</button>
     </div>
   </nav>
