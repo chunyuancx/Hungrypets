@@ -1,7 +1,9 @@
-/* make room for the fixed-bottom nav */
+/* make room for both the top banners and bottom nav */
 body {
+    padding-top: 2.5rem;
     padding-bottom: 3.5rem;
   }
+  
   /* highlight the active tab */
   .btn-link.active {
     font-weight: bold;

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <!-- ensure mobile scaling -->
+  <!-- MOBILE-FIRST SCALING -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <title>Hungry Pets</title>
@@ -12,6 +12,11 @@
   <link href="style.css" rel="stylesheet">
 </head>
 <body class="d-flex flex-column vh-100">
+
+  <!-- CURRENT LEVEL BANNER -->
+  <div id="levelBanner" class="alert alert-info text-center m-0">
+    Current Food Level: <strong><span id="currentLevel">—</span>%</strong>
+  </div>
 
   <!-- LOW-FOOD ALERT -->
   <div id="alertBanner"
