@@ -68,7 +68,7 @@ async function fetchLevel() {
 
 // Update top banners
 function updateLevel(lvl) {
-  const low = lvl !== null && lvl <= 20;
+  const low = lvl !== null && lvl <= 30;
   currentLevel.textContent = lvl === null ? '—' : (low ? 'Low' : 'Filled');
   levelBanner.classList.toggle('alert-danger', low);
   levelBanner.classList.toggle('alert-info',  !low);
@@ -100,7 +100,7 @@ planSaveBtn.onclick = () => {
 dispenseBtn.onclick = async () => {
   await fetch('/api/dispense', { method: 'POST' }).catch(() => {});
   const lvl = await fetchLevel();
-  const text = lvl === null ? 'Failed' : (lvl <= 20 ? 'Low' : 'Filled');
+  const text = lvl === null ? 'Failed' : (lvl <= 30 ? 'Low' : 'Filled');
   logs.unshift({ ts: Date.now(), level: text });
   if (logs.length > 50) logs.pop();
   saveState();
