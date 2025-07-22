@@ -1,6 +1,4 @@
-/*-----------------------------------
-1. Global reset
------------------------------------*/
+/* 1) Reset */
 html, body {
   margin: 0;
   padding: 0;
@@ -8,92 +6,78 @@ html, body {
   font-family: sans-serif;
 }
 
-/*-----------------------------------
-2. Splash screen
------------------------------------*/
-#splash {
+/* 2) Splash overlay */
+.splash {
   position: fixed;
-  inset: 0;                  /* full-screen */
+  inset: 0;
+  background: #feeed4;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: #feeed4;
   text-align: center;
-  padding: 1rem;
   z-index: 9999;
-  overflow: hidden;
 }
-#splash img {
+.splash img {
   max-width: 80%;
-  height: auto;
   margin-bottom: 1rem;
 }
-#splash h2 {
+.splash h2 {
   font-size: 1.25rem;
   color: #2C3E50;
 }
-#splash p {
+.splash p {
   font-size: 0.9rem;
   color: #7F8C8D;
 }
 
-/*-----------------------------------
-3. Main content (shown after splash)
------------------------------------*/
+/* 3) Main content container */
 #mainContent {
-  display: none;      /* initial state */
+  display: none;      /* shown after splash removed */
   flex-direction: column;
   height: 100vh;
 }
 
-/* scrollable area beneath fixed banners/nav */
-.body-content {
-  flex-grow: 1;
-  overflow-y: auto;
-  padding: 1rem;
-  padding-top: 3.5rem;   /* for top banners */
-  padding-bottom: 3.5rem;/* for bottom nav */
-}
-
-/*-----------------------------------
-4. Fixed top banners
------------------------------------*/
-#levelBanner,
-#alertBanner {
-  position: fixed;
+/* 4) Sticky top banners */
+.sticky-banner {
+  position: sticky;
   top: 0; left: 0; right: 0;
   margin: 0;
   border-radius: 0;
   z-index: 1000;
 }
 
-/*-----------------------------------
-5. Flat black bottom nav
------------------------------------*/
+/* 5) Scrollable body */
+.body-content {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  padding-top: 3.5rem;   /* account for banners */
+  padding-bottom: 3.5rem;/* account for nav */
+}
+
+/* 6) Flat black bottom nav */
 .bottom-nav {
   position: fixed;
   bottom: 0; left: 0; right: 0;
   background: #000;
+  display: flex;
+  justify-content: center;
   padding: 0.75rem 0;
   z-index: 1000;
-  border-radius: 0;
-  overflow: hidden;
-}
-.bottom-nav ul {
-  display: flex;
-  justify-content: space-around;
-  margin: 0; padding: 0;
-  list-style: none;
 }
 .nav-btn {
-  background: transparent;
-  border: none;
   color: #fff;
+  background: none;
+  border: none;
   font-size: 1rem;
   padding: 0.5rem 1rem;
 }
-.nav-btn.active {
-  font-weight: bold;
-  text-decoration: underline;
+.nav-btn:focus {
+  outline: none;
+}
+
+/* 7) Section scroll margin so header isn't hidden */
+.section {
+  scroll-margin-top: 3.5rem;
 }

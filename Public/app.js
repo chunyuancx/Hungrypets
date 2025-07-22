@@ -1,96 +1,64 @@
-// UI elements
-const planBtn         = document.getElementById('planBtn');
-const recordBtn       = document.getElementById('recordBtn');
-const dispenseBtn     = document.getElementById('dispenseBtn');
-const planSection     = document.getElementById('planSection');
-const recordSection   = document.getElementById('recordSection');
-const planForm        = document.getElementById('planForm');
+// Element references
 const planSaveBtn     = document.getElementById('planSaveBtn');
+const dispenseBtn     = document.getElementById('dispenseBtn');
+const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 const scheduleList    = document.getElementById('scheduleList');
 const historyTable    = document.getElementById('historyTable');
-const clearHistoryBtn = document.getElementById('clearHistoryBtn');
-const alertBanner     = document.getElementById('alertBanner');
+const timeInput       = document.getElementById('timeInput');
 const levelBanner     = document.getElementById('levelBanner');
+const alertBanner     = document.getElementById('alertBanner');
 const currentLevel    = document.getElementById('currentLevel');
 
-// Helpers
-function formatAMPM(timeStr) {
-  let [h, m] = timeStr.split(':').map(Number);
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  h = h % 12 || 12;
-  return `${h}:${m.toString().padStart(2,'0')} ${ampm}`;
-}
-function compareTime(a, b) {
-  const [ah, am] = a.split(':').map(Number);
-  const [bh, bm] = b.split(':').map(Number);
-  return ah*60 + am - (bh*60 + bm);
-}
-
-// State
+// Load state
 let schedules = JSON.parse(localStorage.getItem('schedules') || '[]');
 let logs      = JSON.parse(localStorage.getItem('logs')      || '[]');
-let editIndex = null;
 
-// Persist
+// Save state
 function saveState() {
   localStorage.setItem('schedules', JSON.stringify(schedules));
   localStorage.setItem('logs',      JSON.stringify(logs));
 }
 
-// Render schedule list
+// Render the meal-plan list
 function renderSchedules() {
-  schedules.sort(compareTime);
-  scheduleList.innerHTML = schedules.length
-    ? schedules.map((time,i)=>`
-      <li class="list-group-item d-flex justify-content-between align-items-center p-1">
-        ${formatAMPM(time)}
-        <span>
-          <button class="btn btn-link btn-sm edit-btn" data-index="${i}">Edit</button>
-          <button class="btn btn-link btn-sm text-danger delete-btn" data-index="${i}">Delete</button>
-        </span>
-      </li>`).join('')
-    : '<li class="list-group-item p-1">No schedules</li>';
-
-  document.querySelectorAll('.edit-btn').forEach(btn=>{
-    btn.onclick = () => {
-      editIndex = +btn.dataset.index;
-      document.getElementById('timeInput').value = schedules[editIndex];
-      planSaveBtn.textContent = 'Update';
-      planBtn.click();
-    };
-  });
-  document.querySelectorAll('.delete-btn').forEach(btn=>{
-    btn.onclick = () => {
-      schedules.splice(+btn.dataset.index,1);
-      saveState();
-      renderSchedules();
-    };
-  });
+  if (!schedules.length) {
+    scheduleList.innerHTML = '<li class="list-group-item p-1">-</li>';
+  } else {
+    scheduleList.innerHTML = schedules
+      .slice().sort()
+      .map(t => `<li class="list-group-item p-1">${t}</li>`)
+      .join('');
+  }
 }
 
-// Render feed history
+// Render the feed-record table
 function renderHistory() {
-  historyTable.innerHTML = logs.length
-    ? logs.map(r=>`
+  if (!logs.length) {
+    historyTable.innerHTML = `
+      <tr><td>-</td><td>-</td></tr>
+    `;
+  } else {
+    historyTable.innerHTML = logs.map(r => `
       <tr>
         <td>${new Date(r.ts).toLocaleTimeString()}</td>
         <td>${r.level}</td>
-      </tr>`).join('')
-    : '<tr><td colspan="2">No records</td></tr>';
+      </tr>
+    `).join('');
+  }
 }
 
-// Clear history
-clearHistoryBtn.onclick = ()=>{
+// Clear history handler
+clearHistoryBtn.onclick = () => {
   logs = [];
   saveState();
   renderHistory();
 };
 
-// Fetch real level
+// Fetch current food level from Pi
 async function fetchLevel() {
   try {
     const res = await fetch('/api/status');
-    if (!res.ok) throw new Error(res.statusText);
+    if (!res.ok) throw 0;
     const { food_level } = await res.json();
     return food_level;
   } catch {
@@ -98,83 +66,50 @@ async function fetchLevel() {
   }
 }
 
-// Update banners
-function updateLevelBanner(level) {
-  const isLow = level !== null && level <= 20;
-  currentLevel.textContent = level===null
-    ? '—'
-    : (isLow ? 'Low' : 'Filled');
-  levelBanner.classList.toggle('alert-danger', isLow);
-  levelBanner.classList.toggle('alert-info', !isLow);
-}
-function updateAlert(level) {
-  alertBanner.style.display = (level!==null && level<=20) ? 'block' : 'none';
+// Update top banners
+function updateLevel(lvl) {
+  const low = lvl !== null && lvl <= 20;
+  currentLevel.textContent = lvl === null ? '—' : (low ? 'Low' : 'Filled');
+  levelBanner.classList.toggle('alert-danger', low);
+  levelBanner.classList.toggle('alert-info',  !low);
+  alertBanner.style.display = low ? 'block' : 'none';
 }
 
-// Poll level every 10s
-setInterval(async()=>{
+// Poll the level every 10s
+setInterval(async () => {
   const lvl = await fetchLevel();
-  updateLevelBanner(lvl);
-  updateAlert(lvl);
-},10000);
-(async()=>{
+  updateLevel(lvl);
+}, 10000);
+// Initial fetch
+(async () => {
   const lvl = await fetchLevel();
-  updateLevelBanner(lvl);
-  updateAlert(lvl);
+  updateLevel(lvl);
 })();
 
-// Tab navigation
-function activate(btn) {
-  [planBtn,recordBtn].forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-}
-planBtn.onclick = ()=>{
-  activate(planBtn);
-  planSection.style.display='block';
-  recordSection.style.display='none';
-};
-recordBtn.onclick = ()=>{
-  activate(recordBtn);
-  planSection.style.display='none';
-  recordSection.style.display='block';
-  renderHistory();
-};
-planBtn.click();
-renderSchedules();
-
-// Handle Add/Update schedule
-planForm.onsubmit = e=>{
-  e.preventDefault();
-  const time = document.getElementById('timeInput').value;
-  if (editIndex===null) schedules.push(time);
-  else schedules[editIndex]=time;
+// Meal plan Save handler
+planSaveBtn.onclick = () => {
+  const t = timeInput.value;
+  if (!t) return;
+  schedules.push(t);
   saveState();
   renderSchedules();
-  planForm.reset();
-  planSaveBtn.textContent='Save';
-  editIndex=null;
+  timeInput.value = '';
 };
 
-// Manual dispense: always log time & level (or Failed)
-dispenseBtn.onclick = async ()=>{
-  const now = Date.now();
-  let level;
-  try {
-    const r = await fetch('/api/dispense',{method:'POST'});
-    if (!r.ok) throw new Error(r.statusText);
-    const lvl = await fetchLevel();
-    level = lvl===null ? 'Failed' : (lvl<=20 ? 'Low':'Filled');
-  } catch {
-    level = 'Failed';
-  }
-  logs.unshift({ts:now, level});
-  if (logs.length>50) logs.pop();
+// Dispense Now handler
+dispenseBtn.onclick = async () => {
+  await fetch('/api/dispense', { method: 'POST' }).catch(() => {});
+  const lvl = await fetchLevel();
+  const text = lvl === null ? 'Failed' : (lvl <= 20 ? 'Low' : 'Filled');
+  logs.unshift({ ts: Date.now(), level: text });
+  if (logs.length > 50) logs.pop();
   saveState();
-
-  updateLevelBanner(level==='Failed'?null:(level==='Low'?0:100));
-  updateAlert(level==='Low'?0:100);
-
-  // switch to record and show it
-  recordBtn.click();
   renderHistory();
+  updateLevel(lvl);
+  document.getElementById('recordSection')
+          .scrollIntoView({ behavior:'smooth' });
 };
+
+// Initial render
+renderSchedules();
+renderHistory();
