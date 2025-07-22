@@ -4,83 +4,83 @@
   <meta charset="utf-8">
   <!-- MOBILE-FIRST SCALING -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
   <title>Hungry Pets</title>
   <link
     href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
     rel="stylesheet">
   <link href="style.css" rel="stylesheet">
 </head>
-<body class="d-flex flex-column vh-100">
+<body>
 
-  <!-- CURRENT-LEVEL BANNER -->
-  <div id="levelBanner" class="alert alert-info text-center m-0">
-    Food Level: <strong><span id="currentLevel">—</span></strong>
+  <!-- SPLASH SCREEN (covers entire viewport) -->
+  <div id="splash" class="d-flex flex-column justify-content-center align-items-center">
+    <img src="hungrypets.jpeg" alt="Pet feeder" class="img-fluid mb-3" style="max-width:80%">
+    <h2 class="h4 mb-2">Feeding time never the same again!</h2>
+    <p class="small text-muted text-center mb-4">
+      Never let your pets miss their feeding time ever again.
+    </p>
+    <!-- inline onclick guaranteed to fire -->
+    <button class="btn btn-primary btn-lg"
+            onclick="document.getElementById('splash').remove(); document.getElementById('mainContent').style.display='flex';">
+      Get Started
+    </button>
   </div>
 
-  <!-- LOW-FOOD ALERT -->
-  <div id="alertBanner"
-       class="alert alert-danger text-center m-0"
-       style="display:none;">
-    ⚠️ Low food level! Please refill.
-  </div>
-
-  <!-- MAIN CONTENT (scrolls) -->
-  <div class="flex-grow-1 overflow-auto p-3">
-    <h1 class="h3 text-center mb-4">Hungry Pets</h1>
-
-    <!-- MEAL PLAN SECTION -->
-    <section id="planSection" class="mb-4">
-      <h2 class="h5 mb-2">Meal Plan</h2>
-      <form id="planForm" class="row g-2">
-        <div class="col-8">
-          <label for="timeInput" class="form-label small">Time</label>
-          <input type="time" id="timeInput"
-                 class="form-control form-control-sm" required>
-        </div>
-        <div class="col-4 d-grid">
-          <button type="submit"
-                  id="planSaveBtn"
-                  class="btn btn-success btn-sm w-100">
-            Save
-          </button>
-        </div>
-      </form>
-      <ul id="scheduleList"
-          class="list-group list-group-flush mt-2 small"></ul>
-    </section>
-
-    <!-- FEED RECORD SECTION -->
-    <section id="recordSection">
-      <div class="d-flex justify-content-between mb-2">
-        <h2 class="h5">Feed Record</h2>
-        <button id="clearHistoryBtn" class="btn btn-danger btn-sm">
-          Clear History
-        </button>
-      </div>
-      <div class="table-responsive">
-        <table class="table table-sm table-striped small mb-0">
-          <thead>
-            <tr>
-              <th>Time</th>
-              <th>Level</th>
-            </tr>
-          </thead>
-          <tbody id="historyTable"></tbody>
-        </table>
-      </div>
-    </section>
-  </div>
-
-  <!-- NAV + MANUAL DISPENSE (fixed bottom) -->
-  <nav class="navbar navbar-light bg-light border-top fixed-bottom">
-    <div class="container-fluid d-flex justify-content-around">
-      <button id="planBtn"     class="btn btn-link p-1 small">Meal Plan</button>
-      <button id="recordBtn"   class="btn btn-link p-1 small">Feed Record</button>
-      <button id="dispenseBtn" class="btn btn-primary btn-sm">Dispense Now</button>
+  <!-- MAIN DASHBOARD (hidden until splash gone) -->
+  <div id="mainContent" class="d-flex flex-column vh-100">
+    <!-- TOP BANNERS -->
+    <div id="levelBanner" class="alert alert-info text-center m-0">
+      Food Level: <strong><span id="currentLevel">—</span></strong>
     </div>
-  </nav>
+    <div id="alertBanner" class="alert alert-danger text-center m-0" style="display:none;">
+      ⚠️ Low food level! Please refill.
+    </div>
 
+    <!-- SCROLLABLE BODY -->
+    <div class="body-content">
+      <h1 class="h3 text-center mb-4">Hungry Pets</h1>
+
+      <!-- Meal Plan -->
+      <section id="planSection" class="mb-4">
+        <h2 class="h5 mb-2">Meal Plan</h2>
+        <form id="planForm" class="row g-2">
+          <div class="col-8">
+            <label for="timeInput" class="form-label small">Time</label>
+            <input type="time" id="timeInput" class="form-control form-control-sm" required>
+          </div>
+          <div class="col-4 d-grid">
+            <button type="submit" id="planSaveBtn" class="btn btn-success btn-sm w-100">Save</button>
+          </div>
+        </form>
+        <ul id="scheduleList" class="list-group list-group-flush mt-2 small"></ul>
+      </section>
+
+      <!-- Feed Record -->
+      <section id="recordSection">
+        <div class="d-flex justify-content-between mb-2">
+          <h2 class="h5">Feed Record</h2>
+          <button id="clearHistoryBtn" class="btn btn-danger btn-sm">Clear History</button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-striped small mb-0">
+            <thead><tr><th>Time</th><th>Level</th></tr></thead>
+            <tbody id="historyTable"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- FLAT BLACK BOTTOM NAV -->
+    <nav class="bottom-nav">
+      <ul>
+        <li><button id="planBtn"     class="nav-btn">Meal Plan</button></li>
+        <li><button id="recordBtn"   class="nav-btn">Feed Record</button></li>
+        <li><button id="dispenseBtn" class="nav-btn">Dispense Now</button></li>
+      </ul>
+    </nav>
+  </div>
+
+  <!-- Bootstrap JS + your app logic -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
   </script>
   <script src="app.js"></script>

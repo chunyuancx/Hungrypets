@@ -14,10 +14,10 @@ def assets(filename):
     return static_file(filename, root='./public')
 
 # 2) API: get current food level
-@app.get('/api/status')
-def status():
-    lvl = feeder.read_food_level()
-    return {'food_level': lvl}
+# @app.get('/api/status')
+# def status():
+#     lvl = feeder.read_food_level()
+#     return {'food_level': lvl}
 
 # 3) API: manual dispense
 @app.post('/api/dispense')
