@@ -34,9 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function showNotification(msg) {
     notification.textContent = msg;
     notification.classList.add('show');
-    setTimeout(() => {
-      notification.classList.remove('show');
-    }, 5000);
+    setTimeout(() => notification.classList.remove('show'), 5000);
   }
 
   // Render Meal Plan
@@ -58,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (editMode) {
       document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.onclick = () => {
-          schedules.splice(+btn.dataset.idx, 1);
+          schedules.splice(+btn.dataset.idx,1);
           saveState();
           renderSchedules();
         };
@@ -114,9 +112,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (schedules.includes(key) && !fired.has(key)) {
       fired.add(key);
       const lvl  = await fetchLevel();
-      const text = lvl === null ? '-' : (lvl <= 30 ? 'Low' : 'Filled');
+      const text = lvl===null ? '-' : (lvl<=30?'Low':'Filled');
       logs.unshift({ ts: Date.now(), level: text });
-      if (logs.length > 50) logs.pop();
+      if (logs.length>50) logs.pop();
       saveState();
       renderHistory();
     }
@@ -125,14 +123,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const nowDate = new Date();
   setTimeout(() => {
     checkSchedules();
-    setInterval(checkSchedules, 60000);
-  }, (60 - nowDate.getSeconds()) * 1000 + 50);
+    setInterval(checkSchedules,60000);
+  }, (60-nowDate.getSeconds())*1000+50);
 
   // Initial draw & polling
   renderSchedules();
   renderHistory();
   updateLevel();
-  setInterval(updateLevel, 10000);
+  setInterval(updateLevel,10000);
 
   // Toggle edit mode
   planEditBtn.onclick = () => {
@@ -154,11 +152,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Dispense Now + slide-down notification
   dispenseBtn.onclick = async () => {
-    await fetch('/api/dispense', { method: 'POST' }).catch(() => {});
+    await fetch('/api/dispense',{ method:'POST' }).catch(()=>{});
     const lvl  = await fetchLevel();
-    const text = lvl === null ? '-' : (lvl <= 30 ? 'Low' : 'Filled');
+    const text = lvl===null ? '-' : (lvl<=30?'Low':'Filled');
     logs.unshift({ ts: Date.now(), level: text });
-    if (logs.length > 50) logs.pop();
+    if (logs.length>50) logs.pop();
     saveState();
     renderHistory();
     showNotification('Food have been dispense! 👅');
