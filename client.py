@@ -1,7 +1,7 @@
 import requests
 
 # Replace with the Pi’s IP address
-pi_ip = '10.132.58.22'
+pi_ip = 'localhost'
 
 def get_food_level():
     try:

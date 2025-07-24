@@ -48,4 +48,4 @@ def dispense():
     return
 
 if __name__ == '__main__':
-    run(app, host='10.132.58.22', port=8080, debug=True)
+    run(app, host='localhost', port=8080, debug=True)
