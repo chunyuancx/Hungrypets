@@ -13,11 +13,11 @@
 <body>
 
   <!-- SPLASH SCREEN -->
-  <div id="splash" class="splash d-flex flex-column justify-content-center align-items-center">
+  <div id="splash" class="splash">
     <img src="hungrypets.jpeg"
          alt="Pet feeder"
          class="img-fluid mb-3"
-         style="max-width:80%">
+         style="max-width:80%;">
     <h2 class="h4 mb-2">Feeding time never the same again!</h2>
     <p class="small text-muted text-center mb-4">
       Never let your pets miss their feeding time ever again.
@@ -37,26 +37,31 @@
     <!-- Notification bar -->
     <div id="notification" class="notification"></div>
 
-    <!-- SCROLLABLE BODY -->
-    <div class="body-content flex-grow-1 overflow-auto">
-
-      <!-- YOUR LOGO -->
-      <img src="hungrypets.jpeg" alt="Hungry Pets Logo" class="logo mb-3">
-
-      <!-- LEVEL BAR -->
-      <div class="level-bar-container mb-4">
+    <!-- HEADER BANNER: spans full width -->
+    <div class="header-banner text-center">
+      <img src="hungrypets.jpeg" alt="Hungry Pets Logo" class="logo mb-2">
+      <p class="level-label mb-2">Food Storage Level</p>
+      <div class="level-bar-container">
         <div id="levelBarFill" class="level-bar-fill">
           <span id="levelText" class="level-text">—</span>
         </div>
       </div>
+    </div>
+
+    <!-- SCROLLABLE BODY -->
+    <div class="body-content flex-grow-1 overflow-auto">
 
       <!-- MEAL PLAN SECTION -->
       <section id="planSection" class="mb-5 section">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h2 class="h5">Meal Plan</h2>
           <div>
-            <button id="planEditBtn" class="btn btn-outline-secondary btn-sm me-2">Edit</button>
-            <button id="planSaveBtn" class="btn btn-success btn-sm">Save</button>
+            <button id="planEditBtn" class="btn btn-outline-secondary btn-sm me-2">
+              Edit
+            </button>
+            <button id="planSaveBtn" class="btn btn-success btn-sm">
+              Save
+            </button>
           </div>
         </div>
         <div class="mb-3">
@@ -73,7 +78,9 @@
       <section id="recordSection" class="mb-5 section">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h2 class="h5">Feed Record</h2>
-          <button id="clearHistoryBtn" class="btn btn-danger btn-sm">Clear History</button>
+          <button id="clearHistoryBtn" class="btn btn-danger btn-sm">
+            Clear History
+          </button>
         </div>
         <div class="table-responsive">
           <table class="table table-sm table-striped small mb-0">
@@ -86,14 +93,17 @@
       </section>
     </div>
 
-    <!-- BOTTOM NAV: DISPENSE ONLY -->
+    <!-- BOTTOM NAV: FULL-WIDTH DISPENSE BUTTON -->
     <nav class="bottom-nav">
-      <button id="dispenseBtn" class="nav-btn">Dispense Now</button>
+      <button id="dispenseBtn" class="btn btn-primary dispense-full-btn">
+        Dispense Now
+      </button>
     </nav>
   </div>
 
   <!-- Bootstrap JS + App logic -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
+  </script>
   <script src="app.js"></script>
 </body>
 </html>

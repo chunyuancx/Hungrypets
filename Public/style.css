@@ -1,40 +1,46 @@
 :root {
-  --logo-color: #YOUR_LOGO_COLOR;  /* ← set this to your logo’s color */
+  --logo-color: #feeed4;  /* ← replace with your logo’s background color */
 }
 
-/* 1) Global Reset + Background */
+/* Global Reset & Base */
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
   font-family: sans-serif;
-  background-color: var(--logo-color);
+  background-color: #fff;
 }
 
-/* 2) Splash Overlay */
+/* SPLASH SCREEN: full-bleed overlay */
 .splash {
-  position: fixed; inset: 0;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: #feeed4;
-  display: flex; flex-direction: column;
-  justify-content: center; align-items: center;
-  text-align: center; z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  z-index: 10000;
 }
 .splash img { max-width: 80%; margin-bottom: 1rem; }
 .splash h2 { font-size: 1.25rem; color: #2C3E50; }
 .splash p  { font-size: 0.9rem;  color: #7F8C8D; }
 
-/* 3) Main Content */
+/* MAIN CONTENT container */
 #mainContent {
-  display: none; flex-direction: column; height: 100vh;
+  display: none;
+  flex-direction: column;
+  height: 100vh;
 }
 
-/* 4) Notification bar */
+/* NOTIFICATION bar */
 .notification {
   position: fixed;
-  top: -3rem;       /* hide above viewport */
+  top: -3rem;
   left: 50%;
   transform: translateX(-50%);
-  background: #28a745;  /* green */
+  background: #28a745;
   color: #fff;
   padding: 0.75rem 1rem;
   border-radius: 0 0 8px 8px;
@@ -44,80 +50,97 @@ html, body {
   white-space: nowrap;
 }
 .notification.show {
-  top: 0;           /* slide down */
+  top: 0;
 }
 
-/* 5) Logo */
-.logo {
+/* HEADER BANNER (full-width) */
+.header-banner {
+  background-color: var(--logo-color);
+  width: 100%;
+  padding: 1rem 0;
+  text-align: center;
+}
+.header-banner .logo {
   display: block;
-  max-width: 120px;    /* cap on larger screens */
-  width: 30%;          /* fluid on smaller ones */
-  height: auto;
-  margin: 0 auto 1rem;
+  max-width: 200px;
+  margin: 0 auto 0.5rem;
 }
 @media (max-width: 400px) {
-  .logo { max-width: 20px; }
+  .header-banner .logo {
+    max-width: 200px;
+  }
 }
-
-/* 6) Level bar */
-.level-bar-container {
-  width: 100%;
-  height: 1.5rem;
+.header-banner .level-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  color: #2C3E50;
+}
+.header-banner .level-bar-container {
+  width: 90%;
+  max-width: 300px;
+  height: 1.25rem;
   background: #eee;
   border: 1px solid #ccc;
   border-radius: 4px;
+  margin: 0 auto;
   overflow: hidden;
 }
+
+/* LEVEL BAR fill + text */
 .level-bar-fill {
   position: relative;
-  height: 100%;
   width: 0%;
+  height: 100%;
   background: #4caf50;
   transition: width 0.5s ease, background 0.5s ease;
 }
 .level-text {
   position: absolute;
-  left: 50%; top: 50%;
+  left: 50%;
+  top: 50%;
   transform: translate(-50%, -50%);
-  font-size: 0.8rem;
   color: #fff;
+  font-size: 0.8rem;
   white-space: nowrap;
 }
 
-/* 7) Scrollable Body */
+/* SCROLLABLE BODY */
 .body-content {
   flex-grow: 1;
   overflow-y: auto;
   padding: 1rem;
-  padding-top: 1.5rem;
-  padding-bottom: 3.5rem;
+  padding-bottom: 3.5rem; /* for bottom nav */
+  scroll-margin-top: 3rem;
 }
 
-/* 8) Bottom Nav */
+/* BOTTOM NAV */
 .bottom-nav {
   position: fixed;
   bottom: 0; left: 0; right: 0;
   background: #000;
-  display: flex;
-  justify-content: center;
-  padding: 0.75rem 0;
+  margin: 0;       /* ensure no extra space */
+  padding: 0;      /* remove default padding */
   z-index: 1000;
 }
-.nav-btn {
-  color: #fff;
-  background: none;
-  border: none;
-  font-size: 1rem;
-  padding: 0.5rem 1rem;
-}
-.nav-btn:focus { outline: none; }
 
-/* 9) Section Scroll Margin */
+/* FULL-WIDTH DISPENSE BUTTON – now black */
+.dispense-full-btn {
+  width: 100%;
+  border-radius: 0;
+  font-size: 1rem;
+  padding: 0.75rem 0;
+  background-color: #000;  /* black */
+  color: #fff;             /* white text */
+  border: none;            /* remove any default border */
+}
+
+
+/* SECTION Scroll Margin */
 .section {
   scroll-margin-top: 3rem;
 }
 
-/* 10) Delete button */
+/* DELETE button */
 .delete-btn {
   margin-right: 1rem;
   line-height: 1;

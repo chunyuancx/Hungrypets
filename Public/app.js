@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // Elements
+  // Element refs
   const planEditBtn     = document.getElementById('planEditBtn');
   const planSaveBtn     = document.getElementById('planSaveBtn');
   const dispenseBtn     = document.getElementById('dispenseBtn');
@@ -17,27 +17,28 @@ document.addEventListener('DOMContentLoaded', () => {
   let editMode  = false;
   let fired     = new Set();
 
-  const saveState = () => {
+  // Persist state
+  function saveState() {
     localStorage.setItem('schedules', JSON.stringify(schedules));
     localStorage.setItem('logs',      JSON.stringify(logs));
-  };
+  }
 
   // HH:MM → h:MM AM/PM
-  const formatTime12 = t24 => {
+  function formatTime12(t24) {
     const [h,m] = t24.split(':').map(Number);
     const suffix = h >= 12 ? 'PM' : 'AM';
     const h12    = ((h + 11) % 12) + 1;
     return `${h12}:${m.toString().padStart(2,'0')} ${suffix}`;
-  };
+  }
 
-  // Show notification for 5s
+  // Slide-down notification
   function showNotification(msg) {
     notification.textContent = msg;
     notification.classList.add('show');
     setTimeout(() => notification.classList.remove('show'), 5000);
   }
 
-  // Render Meal Plan
+  // Render schedules
   function renderSchedules() {
     if (!schedules.length) {
       scheduleList.innerHTML = '<li class="list-group-item p-1">-</li>';
@@ -47,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .slice().sort()
       .map((t,i) => {
         const del = editMode
-          ? `<button class="delete-btn btn btn-sm btn-outline-danger" data-idx="${i}">×</button>`
+          ? `<button class="delete-btn btn btn-sm btn-outline-danger me-2" data-idx="${i}">×</button>`
           : '';
         return `<li class="list-group-item d-flex align-items-center">
                   ${del}<span>${formatTime12(t)}</span>
@@ -64,24 +65,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Render Feed Record
+  // Render history
   function renderHistory() {
     if (!logs.length) {
       historyTable.innerHTML = '<tr><td>-</td><td>-</td></tr>';
-    } else {
-      historyTable.innerHTML = logs.map(r => `
-        <tr><td>${new Date(r.ts).toLocaleTimeString()}</td><td>${r.level}</td></tr>
-      `).join('');
+      return;
     }
+    historyTable.innerHTML = logs.map(r => `
+      <tr>
+        <td>${new Date(r.ts).toLocaleTimeString()}</td>
+        <td>${r.level}</td>
+      </tr>
+    `).join('');
   }
 
+  // Clear history
   clearHistoryBtn.onclick = () => {
     logs = [];
     saveState();
     renderHistory();
   };
 
-  // Fetch current level
+  // Fetch level
   async function fetchLevel() {
     try {
       const res = await fetch('/api/status');
@@ -92,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Update bar + text
+  // Update bar
   async function updateLevel() {
     const lvl = await fetchLevel();
     if (lvl !== null) {
@@ -103,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Auto‐log at schedule
+  // Auto-dispatch
   async function checkSchedules() {
     const now = new Date();
     const hh = now.getHours().toString().padStart(2,'0');
@@ -111,28 +116,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const key = `${hh}:${mm}`;
     if (schedules.includes(key) && !fired.has(key)) {
       fired.add(key);
-      const lvl  = await fetchLevel();
+      await fetch('/api/dispense',{method:'POST'}).catch(()=>{});
+      const lvl = await fetchLevel();
       const text = lvl===null ? '-' : (lvl<=30?'Low':'Filled');
-      logs.unshift({ ts: Date.now(), level: text });
+      logs.unshift({ts:Date.now(),level:text});
       if (logs.length>50) logs.pop();
       saveState();
       renderHistory();
+      showNotification('Food have been dispense! 👅');
     }
   }
-  // sync to next minute
+
+  // Schedule checks
   const nowDate = new Date();
   setTimeout(() => {
     checkSchedules();
     setInterval(checkSchedules,60000);
-  }, (60-nowDate.getSeconds())*1000+50);
+  }, (60-nowDate.getSeconds())*1000 + 50);
 
-  // Initial draw & polling
+  // Initial load
   renderSchedules();
   renderHistory();
   updateLevel();
   setInterval(updateLevel,10000);
 
-  // Toggle edit mode
+  // Toggle edit
   planEditBtn.onclick = () => {
     editMode = !editMode;
     planEditBtn.classList.toggle('btn-outline-secondary', !editMode);
@@ -140,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSchedules();
   };
 
-  // Save new time
+  // Save button + notification
   planSaveBtn.onclick = () => {
     const t = timeInput.value;
     if (!t) return;
@@ -148,14 +156,15 @@ document.addEventListener('DOMContentLoaded', () => {
     saveState();
     renderSchedules();
     timeInput.value = '';
+    showNotification('Meal Plan have been saved');
   };
 
-  // Dispense Now + slide-down notification
+  // Manual dispense
   dispenseBtn.onclick = async () => {
-    await fetch('/api/dispense',{ method:'POST' }).catch(()=>{});
-    const lvl  = await fetchLevel();
+    await fetch('/api/dispense',{method:'POST'}).catch(()=>{});
+    const lvl = await fetchLevel();
     const text = lvl===null ? '-' : (lvl<=30?'Low':'Filled');
-    logs.unshift({ ts: Date.now(), level: text });
+    logs.unshift({ts:Date.now(),level:text});
     if (logs.length>50) logs.pop();
     saveState();
     renderHistory();
