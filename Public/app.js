@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderSchedules();
   renderHistory();
   updateLevel();
-  setInterval(updateLevel,10000);
+  setInterval(updateLevel,2000);
 
   // Toggle edit
   planEditBtn.onclick = () => {
