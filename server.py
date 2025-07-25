@@ -1,51 +1,85 @@
-
 from bottle import Bottle, run, static_file, request, response
-import client as feeder   # assumes ComNet_Proj.py defines read_food_level() and dispense_food()
+import client as feeder  # Assumes this module defines read_food_level() and dispense_food()
+import socket
+import threading
+import time
 
 app = Bottle()
+latest_food_level = {'value': 100.0}
 
-latest_food_level = {'value': 20.0}
-
-# 1) Serve static files
+# ---------- Static File Routes ----------
 @app.route('/')
-def index():
+def serve_index():
     return static_file('index.html', root='./public')
 
 @app.route('/<filename>')
-def assets(filename):
+def serve_static(filename):
     return static_file(filename, root='./public')
 
-# 2) API: get current food level
+# ---------- API: Get Food Status ----------
 @app.get('/api/status')
-def status():
+def get_food_status():
     return {'food_level': latest_food_level['value']}
 
+# ---------- API: Set Food Level Manually ----------
 @app.post('/api/set-level')
 def set_food_level():
-    data = request.json
-    if not data or 'level' not in data:
-        response.status = 400
-        return {'error': 'Missing field "level"'}
-
     try:
+        data = request.json
+        if not data or 'level' not in data:
+            response.status = 400
+            return {'error': 'Missing field "level"'}
+
         level = float(data['level'])
         latest_food_level['value'] = level
+        print(f"[INFO] Set food level to {level}")
         return {'status': 'ok', 'received_level': level}
-    except ValueError:
+    except (ValueError, TypeError):
         response.status = 400
         return {'error': 'Invalid level format (must be a number)'}
-    
-# 3) API: manual dispense
-@app.post('/api/dispense')
-def dispense():
-    data = request.json or {}
-    portion = data.get('portion')
-    if portion is not None:
-        feeder.dispense_food(portion)
-    else:
-        feeder.dispense_food()
-    response.status = 204
-    return
 
+# ---------- API: Manual Dispense ----------
+@app.post('/api/dispense')
+def manual_dispense():
+    try:
+        data = request.json or {}
+        portion = data.get('portion')
+        if portion is not None:
+            print(f"[INFO] Dispensing custom portion: {portion}")
+            feeder.dispense_food(portion)
+        else:
+            print("[INFO] Dispensing default portion")
+            feeder.dispense_food()
+        response.status = 204
+        return
+    except Exception as e:
+        response.status = 500
+        return {'error': str(e)}
+
+# ---------- Network Utility: Broadcast IP ----------
+def broadcast_ip(server_ip):
+    message = f"SERVER_IP:{server_ip}".encode()
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        while True:
+            try:
+                sock.sendto(message, ('<broadcast>', 37020))
+                time.sleep(2)
+            except Exception as e:
+                print(f"[ERROR] Broadcasting failed: {e}")
+
+# ---------- Network Utility: Get Local IP ----------
+def get_local_ip():
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("8.8.8.8", 80))
+            return s.getsockname()[0]
+    except Exception:
+        return "127.0.0.1"
+
+# ---------- Main Server Launch ----------
 if __name__ == '__main__':
-    run(app, host='localhost', port=8080, debug=True)
+    server_ip = get_local_ip()
+    print(f"[INFO] Server IP: {server_ip}")
+    threading.Thread(target=broadcast_ip, args=(server_ip,), daemon=True).start()
+    run(app, host=server_ip, port=8080, debug=True)
