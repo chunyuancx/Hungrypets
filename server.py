@@ -10,8 +10,8 @@ app = Bottle()
 latest_food_level = {'value': 100.0}
 
 # Load your Telegram credentials from environment
-BOT_TOKEN = "114453361"
-CHAT_ID   = "8449048260:AAGDfRFES4-xIXFr1PqzXQ2yfypEOPTIGYE"
+BOT_TOKEN = "8449048260:AAGDfRFES4-xIXFr1PqzXQ2yfypEOPTIGYE"
+CHAT_ID   = "114453361"
 
 def send_telegram(text: str):
     """Send a message to your Telegram chat via Bot API."""
@@ -96,9 +96,9 @@ def set_food_level():
 # ---------- API: Manual Dispense ----------
 @app.post('/api/dispense')
 def dispense():
-    feeder.dispense_food()
+    # feeder.dispense_food()
     print("Dispense endpoint hit; notifying Telegram")
-    send_telegram("Food have been dispense!")
+    send_telegram("Food have been dispensed!")
     response.status = 204
 
 # ---------- Network Utility: Broadcast IP ----------
