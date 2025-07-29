@@ -3,9 +3,64 @@ import client as feeder  # Assumes this module defines read_food_level() and dis
 import socket
 import threading
 import time
+import requests
+import os
 
 app = Bottle()
 latest_food_level = {'value': 100.0}
+
+# Load your Telegram credentials from environment
+BOT_TOKEN = "114453361"
+CHAT_ID   = "8449048260:AAGDfRFES4-xIXFr1PqzXQ2yfypEOPTIGYE"
+
+def send_telegram(text: str):
+    """Send a message to your Telegram chat via Bot API."""
+    if not BOT_TOKEN or not CHAT_ID:
+        print("Telegram credentials missing:", BOT_TOKEN, CHAT_ID)
+        return
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    payload = {"chat_id": CHAT_ID, "text": text}
+    try:
+        r = requests.post(url, json=payload, timeout=5)
+        print("Telegram API response:", r.status_code, r.text)
+    except Exception as e:
+        print("Telegram send failed:", e)
+
+def poll_updates():
+    """Continuously poll getUpdates and auto-reply to /start."""
+    offset = None
+    while True:
+        params = {"timeout": 30}
+        if offset:
+            params["offset"] = offset
+        try:
+            resp = requests.get(
+                f"https://api.telegram.org/bot{BOT_TOKEN}/getUpdates",
+                params=params,
+                timeout=35
+            ).json()
+            for upd in resp.get("result", []):
+                offset = upd["update_id"] + 1
+                msg  = upd.get("message", {})
+                text = msg.get("text", "")
+                chat = msg.get("chat", {}).get("id")
+                if text == "/start" and chat:
+                    # Auto-reply to /start
+                    requests.post(
+                        f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
+                        json={
+                            "chat_id": chat,
+                            "text": "Hi there! I'll notify you when food is dispensed."
+                        },
+                        timeout=5
+                    )
+        except Exception as e:
+            print("Polling error:", e)
+        time.sleep(1)
+
+# Launch polling thread if credentials are present
+if BOT_TOKEN and CHAT_ID:
+    threading.Thread(target=poll_updates, daemon=True).start()
 
 # ---------- Static File Routes ----------
 @app.route('/')
@@ -40,21 +95,11 @@ def set_food_level():
 
 # ---------- API: Manual Dispense ----------
 @app.post('/api/dispense')
-def manual_dispense():
-    try:
-        data = request.json or {}
-        portion = data.get('portion')
-        if portion is not None:
-            print(f"[INFO] Dispensing custom portion: {portion}")
-            feeder.dispense_food(portion)
-        else:
-            print("[INFO] Dispensing default portion")
-            feeder.dispense_food()
-        response.status = 204
-        return
-    except Exception as e:
-        response.status = 500
-        return {'error': str(e)}
+def dispense():
+    feeder.dispense_food()
+    print("Dispense endpoint hit; notifying Telegram")
+    send_telegram("Food have been dispense!")
+    response.status = 204
 
 # ---------- Network Utility: Broadcast IP ----------
 def broadcast_ip(server_ip):
