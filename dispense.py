@@ -1,5 +1,5 @@
 import RPi.GPIO as GPIO
-import time, requests, socket, datetime
+import time, requests, socket, datetime, threading
 
 # GPIO Pins (BCM Mode)
 SERVO_GPIO = 17     # Controls TS90A servo
@@ -47,6 +47,23 @@ def discover_server_ip(timeout=10, port=BROADCAST_PORT):
         log("Timed out waiting for server broadcast.")
         return None
 
+def poll_dispense_command():
+    global food_percent
+    url = f"http://{server_ip}:{HTTP_PORT}/api/dispense-command"
+    while True:
+        try:
+            res = requests.get(url, timeout=3)
+            if res.json().get('dispense'):
+                log("Received remote dispense command.")
+                set_angle(180)
+                time.sleep(3)
+                set_angle(90)
+                food_percent = max(0, food_percent - 10)
+                send_food_level_to_server(food_percent, server_ip)
+        except Exception as e:
+            log(f"[✗] Failed to poll command: {e}")
+        time.sleep(2)
+
 # --- Send food level to server ---
 def send_food_level_to_server(percent, server_ip, port=HTTP_PORT):
     url = f"http://{server_ip}:{port}/api/set-level"
@@ -86,6 +103,8 @@ while server_ip is None:
 food_percent = get_food_level_from_server(server_ip)
 log(f"Current food level: {food_percent}%")
 
+threading.Thread(target=poll_dispense_command, daemon=True).start()
+
 try:
     print("Waiting for touch...")
     while True:
@@ -95,9 +114,6 @@ try:
             time.sleep(3)
             print("Returning to 90°")
             set_angle(90)
-            food_percent = max(0, food_percent - 10)
-            send_food_level_to_server(food_percent, server_ip)
-            log(f"Updated food level: {food_percent}%")
             print("Done. Waiting for next touch.")
             time.sleep(0.5)  # debounce delay
         time.sleep(0.1)

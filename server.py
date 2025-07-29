@@ -8,6 +8,7 @@ import os
 
 app = Bottle()
 latest_food_level = {'value': 100.0}
+dispense_flag = {'trigger': False}
 
 # Load your Telegram credentials from environment
 BOT_TOKEN = "8449048260:AAGDfRFES4-xIXFr1PqzXQ2yfypEOPTIGYE"
@@ -97,9 +98,17 @@ def set_food_level():
 @app.post('/api/dispense')
 def dispense():
     # feeder.dispense_food()
+    dispense_flag['trigger'] = True
     print("Dispense endpoint hit; notifying Telegram")
     send_telegram("Food have been dispensed!")
     response.status = 204
+
+@app.get('/api/dispense-command')
+def check_dispense_command():
+    if dispense_flag['trigger']:
+        dispense_flag['trigger'] = False
+        return {'dispense': True}
+    return {'dispense': False}
 
 # ---------- Network Utility: Broadcast IP ----------
 def broadcast_ip(server_ip):
