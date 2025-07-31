@@ -149,7 +149,7 @@ def get_local_ip():
         return "127.0.0.1"
 
 # ---------- Main Server Launch ----------
-if name == 'main':
+if __name__ == '__main__':
     server_ip = get_local_ip()
     print(f"[INFO] Server IP: {server_ip}")
     threading.Thread(target=broadcast_ip, args=(server_ip,), daemon=True).start()
