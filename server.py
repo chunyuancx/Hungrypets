@@ -1,5 +1,4 @@
 from bottle import Bottle, run, static_file, request, response
-import client as feeder  # Assumes this module defines read_food_level() and dispense_food()
 import socket
 import threading
 import time
@@ -114,7 +113,6 @@ def set_food_level():
 # ---------- API: Manual Dispense ----------
 @app.post('/api/dispense')
 def dispense():
-    # feeder.dispense_food()
     dispense_flag['trigger'] = True
     print("Dispense endpoint hit; notifying Telegram")
     send_telegram("🍽️ Food have been dispensed! 👅")
